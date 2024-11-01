@@ -4,10 +4,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.bondijet.interfaces.*;
 import com.bondijet.pasaje.Pasaje;
@@ -23,7 +25,8 @@ public class Aerolinea implements IAerolinea {
 	private final List<Aeropuerto> registroAeropuertos;
 	private final Map<String, Vuelo> registroCodigosVuelosGeneral;
 	private final Map<Integer, Cliente> registroDniCliente;
-	private int nroPasaje = 0;
+//	private final Set<String> destinosNacionalesValidos;
+	private int nroPasaje = 1;
 	
 	 public Aerolinea(String nombre, String cuit) {
 		this.nombre = nombre;
@@ -32,22 +35,36 @@ public class Aerolinea implements IAerolinea {
 		this.registroClientes = new ArrayList<Cliente>();
 		this.registroCodigosVuelosGeneral = new HashMap<String, Vuelo>();
 		this.registroDniCliente = new HashMap<Integer, Cliente>();
+//		this.destinosNacionalesValidos = new HashSet<String>();
 	}
 	@Override
-	public void registrarCliente(int dni, String nombre, String telefono) {
+	public void registrarCliente(int dni, String nombre, String telefono) throws RuntimeException {
 		// TODO: chequear posibles excepciones
-		Cliente cliente = new Cliente(dni, nombre, telefono);
-		registroClientes.add(cliente);
+		if(buscarClientePorDni(dni) != null) {
+			throw new RuntimeException();
+		}
+			
+			Cliente cliente = new Cliente(dni, nombre, telefono);
+			registroClientes.add(cliente);
+		
 	}
 	@Override
 	public void registrarAeropuerto(String nombre, String pais, String provincia, String direccion) {
 		// TODO: chequear posibles excepciones
+		if(buscarAeropuertoRegistradoPorDireccion(direccion) != null) {
+			throw new RuntimeException();
+		}
 		Aeropuerto aeropuerto = new Aeropuerto(nombre, pais, provincia, direccion);
 		registroAeropuertos.add(aeropuerto);
 	}
 	@Override
 	public String registrarVueloPublicoNacional(String origen, String destino, String fecha, int tripulantes,
 			double valorRefrigerio, double[] precios, int[] cantAsientos) {
+		
+		if(!chequearOrigenRegistradosCoincide(destino)) {
+			throw new RuntimeException();
+		}
+		
 		VueloPublico vuelo = new VueloPublicoNacional(origen, destino, fecha, tripulantes, valorRefrigerio, precios, cantAsientos);
 		
 		Aeropuerto aeropuerto = buscarAeropuerto(origen);
@@ -71,14 +88,22 @@ public class Aerolinea implements IAerolinea {
 	@Override
 	public String VenderVueloPrivado(String origen, String destino, String fecha, int tripulantes, double precio,
 			int dniComprador, int[] acompaniantes) {
+		StringBuilder fechaAux = new StringBuilder(fecha);
+		int dia = Integer.parseInt(fechaAux.substring(0, 2)); 
+		int mes = Integer.parseInt(fechaAux.substring(3, 5)); 
+		int anio = Integer.parseInt(fechaAux.substring(6)); 
+		LocalDate date = LocalDate.of(anio, mes, dia);
+		LocalDate today = LocalDate.now();
+		if(date.isBefore(today)) {
+			throw new RuntimeException();
+		}
+		
 		VueloPrivado vuelo = new VueloPrivado(origen, destino, fecha, tripulantes, precio, dniComprador, acompaniantes);
 		Aeropuerto aeropuerto = buscarAeropuerto(origen);
-//		aeropuerto.agregarVueloPrivado(vuelo);
 		aeropuerto.agregarVuelo(vuelo);
 		registroCodigosVuelosGeneral.put(vuelo.devolverCodigo(), vuelo);
 		return vuelo.devolverCodigo();
 	}
-	@SuppressWarnings("null")
 	@Override
 	public Map<Integer, String> asientosDisponibles(String codVuelo) {
 		Vuelo vuelo = null;
@@ -88,10 +113,11 @@ public class Aerolinea implements IAerolinea {
 				break;
 			} 
 		}
-		Map<Integer, String> mapaAsientos = null;
+		Map<Integer, String> mapaAsientos = new HashMap<Integer, String>();
 		try {
 			HashMap<Integer, Asiento> asientos = vuelo.devolverListaAsientos();
 			for(Map.Entry<Integer, Asiento> asientoEntry: asientos.entrySet()) {
+				
 				if(asientoEntry.getValue().estaDisponible()) {
 					mapaAsientos.put(asientoEntry.getValue().devolverNumeroAsiento(), asientoEntry.getValue().devolverSeccion());
 				}
@@ -109,7 +135,7 @@ public class Aerolinea implements IAerolinea {
 		try {
 			cliente = buscarClientePorDni(dni);
 			if(cliente == null) {
-				throw new Error();
+				throw new RuntimeException();
 			}
 		} catch (Exception e) {
 			System.out.println(e);
@@ -123,6 +149,7 @@ public class Aerolinea implements IAerolinea {
 		HashMap<Integer, Asiento> asientos = vuelo.devolverListaAsientos();
 		Asiento asiento = asientos.get(nroAsiento);
 		asiento.cambiarEstado();
+		asiento.asociarPasaje(pasaje);
 		return codigoPasaje;
 	}
 	@SuppressWarnings("null")
@@ -137,14 +164,14 @@ public class Aerolinea implements IAerolinea {
 		LocalDate date = LocalDate.of(anio, mes, dia);
 		LocalDate datePlus7Days = date.plusDays(7);
 		ArrayList<Vuelo> vuelos = devolverVuelosMismoOrigenDestino(origen, destino);
-		List<String> vuelosSimilares = null;
+		List<String> vuelosSimilares = new ArrayList<String>();
 		for(Vuelo vuelo: vuelos) {
 			String fechaVuelo = vuelo.devolverFecha(); // 20/10/2024
 			StringBuilder fechaAuxVuelo = new StringBuilder(fechaVuelo); 
-			int diaVuelo = Integer.parseInt(fechaAux.substring(0, 2)); 
-			int mesVuelo = Integer.parseInt(fechaAux.substring(3, 5)); 
-			int anioVuelo = Integer.parseInt(fechaAux.substring(6));
-			LocalDate dateVuelo = LocalDate.of(anio, mes, dia);
+			int diaVuelo = Integer.parseInt(fechaAuxVuelo.substring(0, 2)); 
+			int mesVuelo = Integer.parseInt(fechaAuxVuelo.substring(3, 5)); 
+			int anioVuelo = Integer.parseInt(fechaAuxVuelo.substring(6));
+			LocalDate dateVuelo = LocalDate.of(anioVuelo, mesVuelo, diaVuelo);
 			if(dateVuelo.isAfter(date) && dateVuelo.isBefore(datePlus7Days)) {
 				vuelosSimilares.add(vuelo.devolverCodigo());
 			}
@@ -162,11 +189,18 @@ public class Aerolinea implements IAerolinea {
 		HashMap<Integer, Asiento> asientos = vuelo.devolverListaAsientos();
 		Asiento asiento = asientos.get(nroAsiento);
 		Pasaje pasaje = asiento.devolverPasajeAsociado();
-		int codigoUnicoPasaje = pasaje.devolverCodigoPasaje();
-		Cliente cliente = registroDniCliente.get(dni);
-		cliente.removerPasaje(codigoUnicoPasaje);	
-		asiento.cambiarEstado();
 		
+		try {
+			int codigoUnicoPasaje = pasaje.devolverCodigoPasaje();
+			Cliente cliente = registroDniCliente.get(dni);
+			cliente.removerPasaje(codigoUnicoPasaje);
+		} catch (Exception e) {
+			// TODO: handle exception
+			System.out.println(e);
+		}
+			
+		asiento.cambiarEstado();
+		asiento.removerPasajeAsociado();
 	}
 	@Override
 	public void cancelarPasaje(int dni, int codPasaje) {
@@ -193,17 +227,27 @@ public class Aerolinea implements IAerolinea {
 		ArrayList<Pasaje> pasajeros = vuelo.cancelarVuelo(); // lista pasajeros cancelados
 		String destino = vuelo.devolverDestino();
 		String origen = vuelo.devolverOrigen();
+		registroCodigosVuelosGeneral.remove(codVuelo);
 		ArrayList<Vuelo> vuelosMismoDestino = devolverVuelosMismoOrigenDestino(origen, destino);
-		List<String> listaPasajeros = null;
+		List<String> listaPasajeros = new ArrayList<String>();
 		HashMap<String, Integer> secciones = new HashMap<String, Integer>();
 		secciones.put("Turista", 1);
 		secciones.put("Ejecutivo", 2);
 		secciones.put("PrimeraClase", 3);
-		int contador = 0; 
+		int contador = 0;
+			
 		for(Vuelo vueloAux: vuelosMismoDestino) {
 			HashMap<Integer, Asiento> asientos = vueloAux.devolverListaAsientos();
-			
+			System.out.println(vueloAux.devolverCodigo() + "holis");
+			if(listaPasajeros.size() < pasajeros.size()) { // Arreglar esto!!!
+				//PROBLEMA: - Si hay mas aviones con el mismo destino, que pasajeros a asignar asientos
+				//          
+				
 			for(Entry<Integer, Asiento> asiento: asientos.entrySet()) {
+				if(listaPasajeros.size() >= pasajeros.size()) {
+					break;
+				}
+				System.out.println(pasajeros.get(0).devolverDni());
 				String seccionPasajeroCancelado = pasajeros.get(contador).devolverSeccion();
 				String seccionVueloNuevo = asiento.getValue().devolverSeccion();
 				if(asiento.getValue().estaDisponible() && 
@@ -211,10 +255,12 @@ public class Aerolinea implements IAerolinea {
 					StringBuilder detallesReprogramacion = new StringBuilder();
 					Cliente cliente = registroDniCliente.get(pasajeros.get(contador).devolverDni());
 					detallesReprogramacion.append(cliente.devolverDetalleCliente() 
-							+ vueloAux.devolverCodigo());
+							+ " - " + vueloAux.devolverCodigo());
 					listaPasajeros.add(detallesReprogramacion.toString());
 				}
 				contador++;
+				
+			}
 			}	
 		}
 		
@@ -222,7 +268,7 @@ public class Aerolinea implements IAerolinea {
 			StringBuilder detallesReprogramacion = new StringBuilder();
 			Cliente cliente = registroDniCliente.get(pasajeros.get(contador).devolverDni());
 			detallesReprogramacion.append(cliente.devolverDetalleCliente() 
-					+ " -  CANCELADO");
+					+ " - CANCELADO");
 			listaPasajeros.add(detallesReprogramacion.toString());
 			contador++;
 		}
@@ -262,7 +308,7 @@ public class Aerolinea implements IAerolinea {
 	
 	@SuppressWarnings("null")
 	private ArrayList<Vuelo> devolverVuelosMismoOrigenDestino(String origen, String destino) {
-		ArrayList<Vuelo> vuelosSimilares = null;
+		ArrayList<Vuelo> vuelosSimilares = new ArrayList<Vuelo>();
 		for(Entry<String, Vuelo> vueloEntry: registroCodigosVuelosGeneral.entrySet()) {
 			Vuelo vuelo = vueloEntry.getValue();
 			if(vuelo.devolverDestino().equals(destino) && vuelo.devolverOrigen().equals(origen)) {
@@ -277,4 +323,27 @@ public class Aerolinea implements IAerolinea {
 		this.nroPasaje++;
 	}
 	
+	private Aeropuerto buscarAeropuertoRegistradoPorDireccion(String direccion) {
+		for(Aeropuerto aeropuerto: registroAeropuertos) {
+			if(aeropuerto.devolverDireccion().equals(direccion)) {
+				return aeropuerto;
+			}
+		
+		}
+		return null;
+	}
+	
+	private boolean chequearOrigenRegistradosCoincide(String destino) {
+		for(Aeropuerto aeropuerto: registroAeropuertos) {
+			if(aeropuerto.obtenerNombre().equals(destino)) {
+				return true;
+			}
+		
+		}
+		return false;
+	}
+	@Override
+	public String toString() {
+		return this.nombre + " - " + this.cuit;
+	}
 }

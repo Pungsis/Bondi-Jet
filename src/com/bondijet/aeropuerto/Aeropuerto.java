@@ -47,4 +47,11 @@ public class Aeropuerto {
 	public String obtenerNombre() {
 		return this.nombre;
 	}
+	
+	public String devolverDireccion() {
+		return this.direccion;
+	}
+	public String devolverDestino() {
+		return this.provincia;
+	}
 }

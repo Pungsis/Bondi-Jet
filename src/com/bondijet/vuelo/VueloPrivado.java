@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.bondijet.asiento.Asiento;
+import com.bondijet.pasaje.Pasaje;
 
 public class VueloPrivado extends Vuelo {
 	private double precio;
@@ -24,7 +25,8 @@ public class VueloPrivado extends Vuelo {
 	}
 	
 	private int calcularCantJetsNecesarios() {
-		return Math.round((1 + acompaniantes.length) / 15); 
+		int jets = (int) Math.ceil((float)(1 + acompaniantes.length) / 15);
+		return jets;
 	}
 	
 	public int devolverCantJets() {
@@ -71,11 +73,17 @@ public class VueloPrivado extends Vuelo {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+	@Override
 	public String toString() {
 		StringBuilder detalles = new StringBuilder();
-		detalles.append(this.codigo + " - " + this.origen + " - " + this.destino + " - " + this.fecha + " - PRIVADO - " + this.cantJets  );
+		detalles.append(this.codigo + " - " + this.origen + " - " + this.destino + " - " + this.fecha + " - PRIVADO (" + this.cantJets + ")"  );
 		return detalles.toString();
+	}
+
+	@Override
+	public ArrayList<Pasaje> cancelarVuelo() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

@@ -42,14 +42,20 @@ public abstract class VueloPublico extends Vuelo {
 	
 	private HashMap<Integer, Asiento> generarAsientos() {
 		HashMap<Integer, Asiento> asientos = new HashMap<Integer, Asiento>();
-	
+		int contador = 0;
+		try {
+			
 		for(int i = 0; i < this.cantAsientos.length; i++ ) {
 			String seccion = this.clases[i];
 			for(int j = 0; j < this.cantAsientos[i]; j++ ) {
-				Asiento asiento = new Asiento(j+1, seccion);
-				asientos.put(j+1,asiento);
+				Asiento asiento = new Asiento(contador, seccion);
+				asientos.put(contador,asiento);
+				contador++;
 		}
 	}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 		return asientos;
 	}
 	@Override
@@ -68,12 +74,18 @@ public abstract class VueloPublico extends Vuelo {
 	@SuppressWarnings("null")
 	@Override
 	public ArrayList<Pasaje> cancelarVuelo() {
-		ArrayList<Pasaje> pasajes = null;
+		List<Pasaje> pasajes = new ArrayList<Pasaje>();
+		try {
+			
 		for(Entry<Integer, Asiento> asiento: asientos.entrySet()) {
 			if(!asiento.getValue().estaDisponible()) {
 				pasajes.add(asiento.getValue().devolverPasajeAsociado());
 			}
 		}
-		return pasajes;
+		} 
+		catch (Exception e) {
+			// TODO: handle exception
+		}
+		return (ArrayList<Pasaje>) pasajes;
 	}
 }

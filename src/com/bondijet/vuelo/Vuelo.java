@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.bondijet.asiento.Asiento;
+import com.bondijet.interfaces.VueloInterface;
 import com.bondijet.pasaje.Pasaje;
 
-public abstract class Vuelo {
+public abstract class Vuelo implements VueloInterface {
 	protected String codigo;
 	protected String origen; 
 	protected String destino; 
