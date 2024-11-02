@@ -2,14 +2,10 @@ package com.bondijet;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import com.bondijet.interfaces.*;
 import com.bondijet.pasaje.Pasaje;
@@ -25,6 +21,8 @@ public class Aerolinea implements IAerolinea {
 	private final List<Aeropuerto> registroAeropuertos;
 	private final Map<String, Vuelo> registroCodigosVuelosGeneral;
 	private final Map<Integer, Cliente> registroDniCliente;
+	private final Map<String, Double> registroDestinoRecaudacion;
+	
 //	private final Set<String> destinosNacionalesValidos;
 	private int nroPasaje = 1;
 	
@@ -35,6 +33,7 @@ public class Aerolinea implements IAerolinea {
 		this.registroClientes = new ArrayList<Cliente>();
 		this.registroCodigosVuelosGeneral = new HashMap<String, Vuelo>();
 		this.registroDniCliente = new HashMap<Integer, Cliente>();
+		this.registroDestinoRecaudacion = new HashMap<String, Double>();
 //		this.destinosNacionalesValidos = new HashSet<String>();
 	}
 	@Override
@@ -54,13 +53,19 @@ public class Aerolinea implements IAerolinea {
 		if(buscarAeropuertoRegistradoPorDireccion(direccion) != null) {
 			throw new RuntimeException();
 		}
+		if(!registroDestinoRecaudacion.containsKey(nombre)) {
+			registroDestinoRecaudacion.put(nombre, (double) 0);
+		}
 		Aeropuerto aeropuerto = new Aeropuerto(nombre, pais, provincia, direccion);
 		registroAeropuertos.add(aeropuerto);
+		
 	}
 	@Override
 	public String registrarVueloPublicoNacional(String origen, String destino, String fecha, int tripulantes,
 			double valorRefrigerio, double[] precios, int[] cantAsientos) {
-		
+		if(!registroDestinoRecaudacion.containsKey(destino)) {
+			registroDestinoRecaudacion.put(destino, (double) 0);
+		}
 		if(!chequearOrigenRegistradosCoincide(destino)) {
 			throw new RuntimeException();
 		}
@@ -98,7 +103,13 @@ public class Aerolinea implements IAerolinea {
 			throw new RuntimeException();
 		}
 		
+		
+		
 		VueloPrivado vuelo = new VueloPrivado(origen, destino, fecha, tripulantes, precio, dniComprador, acompaniantes);
+		double costo = vuelo.devolverCostoTotal();
+		double recaudacion = registroDestinoRecaudacion.get(destino);
+		recaudacion += costo;
+		registroDestinoRecaudacion.replace(destino, recaudacion);
 		Aeropuerto aeropuerto = buscarAeropuerto(origen);
 		aeropuerto.agregarVuelo(vuelo);
 		registroCodigosVuelosGeneral.put(vuelo.devolverCodigo(), vuelo);
@@ -146,6 +157,10 @@ public class Aerolinea implements IAerolinea {
 		cliente.adicionarPasaje(codigoPasaje, pasaje);
 		registroDniCliente.put(dni, cliente);
 		VueloPublico vuelo = (VueloPublico) registroCodigosVuelosGeneral.get(codVuelo);
+		double costoPasaje = pasaje.devolverCostoPasaje(vuelo.devolverCostoSeccion(nroAsiento), vuelo.devolverValorRefrigerio(), vuelo.devolverCantRefregerios());
+		double recaudacion = registroDestinoRecaudacion.get(vuelo.devolverDestino());
+		recaudacion += costoPasaje;
+		registroDestinoRecaudacion.replace(vuelo.devolverDestino(), recaudacion);
 		HashMap<Integer, Asiento> asientos = vuelo.devolverListaAsientos();
 		Asiento asiento = asientos.get(nroAsiento);
 		asiento.cambiarEstado();
@@ -278,8 +293,17 @@ public class Aerolinea implements IAerolinea {
 	}
 	@Override
 	public double totalRecaudado(String destino) {
-		
-		return 0;
+		// a tener en cuenta
+		// VueloPublico se le pasa un array de tipo {1500, ....}
+		// Se le suma el valor de los refrigerios de cada pasaje (es igual)
+		// + 20 % de impuestos
+		// y Vuelo privado tiene un valor fijo (por vuelo completo)
+		// Hay que tener en cuenta la cantidad de jets
+		// + 30 % de impuestos :(
+		// y pide que sea en O(1)
+		System.out.println(registroDestinoRecaudacion.get(destino));
+		double recaudacion = registroDestinoRecaudacion.get(destino);
+		return recaudacion;
 	}
 	@Override
 	public String detalleDeVuelo(String codVuelo) {

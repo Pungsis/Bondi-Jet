@@ -15,7 +15,7 @@ public class VueloPublicoInternacional extends VueloPublico {
 		
 	}	
 	
-
+	
 	
 	@Override
 	public String devolverCodigo() {
@@ -28,6 +28,12 @@ public class VueloPublicoInternacional extends VueloPublico {
 		StringBuilder detalles = new StringBuilder();
 		detalles.append(this.codigo + " - " + this.origen + " - " + this.destino + " - " + this.fecha + " - INTERNACIONAL" );
 		return detalles.toString();
+	}
+
+	@Override
+	public int devolverCantRefregerios() {
+		// TODO Auto-generated method stub
+		return this.cantRefrigerios;
 	}
 
 

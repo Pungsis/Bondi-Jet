@@ -29,5 +29,11 @@ public class VueloPublicoNacional extends VueloPublico {
 		return detalles.toString();
 	}
 
+	@Override
+	public int devolverCantRefregerios() {
+		// TODO Auto-generated method stub
+		return 1;
+	}
+
 
 }

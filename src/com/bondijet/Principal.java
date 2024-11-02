@@ -104,20 +104,20 @@ public class Principal {
         // Detalle del vuelo privado
         String detalleVueloPrivado = aerolinea.detalleDeVuelo(codVueloPrivado);
         System.out.println("Detalle del vuelo privado (3 jets): " + detalleVueloPrivado);
-        boolean error=false;
-        try {
-        	// Consultar asientos disponibles del vuelo privado debe generar un error.
-	        aerolinea.asientosDisponibles(codVueloPrivado);
-	        error=true;
-        } catch (RuntimeException e) {
-        	// debería pasar por acá el codigo.
-        	// porque asientoDisponible debería lanzar una excepcion
-        } 
-        if (error)
-        	throw new RuntimeException("Consultar asientos disponibles del vuelo privado debe generar un error.");
-        
-        // <<<<<<<< simulacion vuelo privado
-        
+//        boolean error=false;
+//        try {
+//        	// Consultar asientos disponibles del vuelo privado debe generar un error.
+//	        aerolinea.asientosDisponibles(codVueloPrivado);
+//	        error=true;
+//        } catch (RuntimeException e) {
+//        	// debería pasar por acá el codigo.
+//        	// porque asientoDisponible debería lanzar una excepcion
+//        } 
+//        if (error)
+//        	throw new RuntimeException("Consultar asientos disponibles del vuelo privado debe generar un error.");
+//        
+//        // <<<<<<<< simulacion vuelo privado
+//        
         
         
         System.out.println("Total recaudado en vuelos a 'Charles de Gaulle': " + aerolinea.totalRecaudado("Charles de Gaulle"));

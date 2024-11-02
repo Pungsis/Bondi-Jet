@@ -27,6 +27,25 @@ public abstract class VueloPublico extends Vuelo {
 		this.codigo = generarCodigoVuelo();
 	}
 	
+	public abstract int devolverCantRefregerios();
+	
+	public double devolverValorRefrigerio() {
+		return this.valorRefrigerio;
+	}
+	
+
+	public double devolverCostoSeccion(int numeroAsiento) {
+		Asiento asiento = asientos.get(numeroAsiento);
+		String seccion = asiento.devolverSeccion();
+		double costo = 0;
+		for(int i = 0; i < this.clases.length; i++) {
+			if(this.clases[i].equals(seccion)) {
+				costo = precios[i];
+			}
+		}
+		return costo;
+	}
+	
 	private String generarCodigoVuelo() {
 		StringBuilder codigo = new StringBuilder();
 		int numero = VueloUtils.devolverCodigoDiario();

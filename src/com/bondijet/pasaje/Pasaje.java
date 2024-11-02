@@ -41,5 +41,11 @@ public class Pasaje {
 	public int devolverDni() {
 		return this.dni;
 	}
+	
+	public double devolverCostoPasaje(double valorPasaje, double valorRefrigerio, int cantRefrigerios) {
+		float impuesto = (float) 1.2;
+		return (double) Math.floor((valorPasaje + valorRefrigerio * cantRefrigerios) * impuesto);
+		
+	}
 }
 

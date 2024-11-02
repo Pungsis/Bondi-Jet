@@ -223,8 +223,9 @@ public class AerolineaTest {
 		String codVuelo = aerolinea.registrarVueloPublicoInternacional("Ezeiza", "Barajas", "15/12/2024", 8, 2000, 3,
 				precios, cantAsientos, escalas);
 		
-	    for (int i = 1; i < 141; i++) {
+	    for (int i = 0; i < 140; i++) {
 	        int dni = 10000000 + i; // Simplemente como ejemplo
+	        System.out.println(i);
 	        aerolinea.registrarCliente(dni, "Pasajero " + (i + 1), "011-1234-" + (5670 + i) ); // Registrar acompañante
 	        aerolinea.venderPasaje(dni, codVuelo, i, false);
 	    }

@@ -42,6 +42,11 @@ public class VueloPrivado extends Vuelo {
 		return codigo.toString();
 	}
 
+	public double devolverCostoTotal() {
+		float impuesto = (float) 1.3;
+		return (double) (this.precio * this.cantJets) * impuesto;
+	}
+	
 	@Override
 	public String devolverCodigo() {
 		// TODO Auto-generated method stub
